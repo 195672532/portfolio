@@ -1,0 +1,11 @@
+{
+  "name": "designer-portfolio",
+  "version": "1.0.0",
+  "description": "设计师个人作品展示网站",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": ["portfolio", "design", "static"],
+  "author": "",
+  "license": "MIT"
+}

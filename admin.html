@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>后台管理 - 设计师作品集</title>
+<!-- 腾讯云 CloudBase 数据存储（跨设备同步） -->
+<script src="cloudbase-config.js"></script>
+<style>
+  :root {
+    --primary: #1a1a2e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --sidebar-w: 240px;
+    --header-h: 60px;
+    --light: #f5f6fa;
+    --border: #e9ecef;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--light); color: #333; display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-w); background: var(--primary); flex-shrink: 0;
+    display: flex; flex-direction: column; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-logo {
+    padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sidebar-logo-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .sidebar-logo-text { color: #fff; font-size: 16px; font-weight: 700; }
+  .sidebar-logo-text span { color: var(--accent); }
+  .sidebar-menu { padding: 16px 0; flex: 1; }
+  .menu-section { padding: 8px 20px 4px; font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 1px; text-transform: uppercase; }
+  .menu-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 20px; cursor: pointer;
+    color: rgba(255,255,255,0.65); font-size: 14px; transition: all .2s; position: relative;
+  }
+  .menu-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+  .menu-item.active { color: #fff; background: rgba(233,69,96,0.2); }
+  .menu-item.active::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; background: var(--accent); border-radius: 0 2px 2px 0; }
+  .menu-icon { width: 20px; text-align: center; font-size: 16px; }
+  .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-footer a { color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: color .2s; }
+  .sidebar-footer a:hover { color: var(--accent); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    height: var(--header-h); background: #fff; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; flex-shrink: 0; box-shadow: var(--shadow);
+  }
+  .topbar-title { font-size: 18px; font-weight: 700; color: var(--primary); }
+  .topbar-actions { display: flex; gap: 12px; align-items: center; }
+  .btn { padding: 8px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; border: none; font-weight: 600; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #c73652; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(233,69,96,0.3); }
+  .btn-secondary { background: #fff; color: var(--primary); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: #fff; color: #dc3545; border: 1.5px solid #dc3545; }
+  .btn-danger:hover { background: #dc3545; color: #fff; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .content { flex: 1; overflow-y: auto; padding: 32px; }
+
+  /* PANELS */
+  .panel { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .panel-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+  .panel-body { padding: 24px; }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 13px; font-weight: 600; color: var(--primary); }
+  input[type=text], input[type=email], input[type=tel], textarea, select {
+    padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 14px; font-family: inherit; transition: border-color .2s; background: #fff;
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.1); }
+  textarea { resize: vertical; min-height: 90px; }
+  .char-hint { font-size: 11px; color: #aaa; }
+
+  /* AVATAR UPLOAD */
+  .avatar-upload { display: flex; align-items: center; gap: 20px; }
+  .avatar-preview { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--border); background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; flex-shrink: 0; }
+  .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .upload-btn-wrap { position: relative; }
+  .upload-btn-wrap input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+  /* TAGS INPUT */
+  .tags-input-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; cursor: text; min-height: 44px; align-items: center; }
+  .tags-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.1); }
+  .tag-chip { background: rgba(233,69,96,0.1); color: var(--accent); border: 1px solid rgba(233,69,96,0.3); padding: 3px 10px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+  .tag-chip button { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 13px; padding: 0; line-height: 1; }
+  .tags-input { border: none; outline: none; font-size: 13px; min-width: 80px; flex: 1; }
+
+  /* WORKS TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--light); color: var(--primary); font-size: 12px; font-weight: 700; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  tr:hover td { background: #fafbfc; }
+  .work-thumb-cell { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .work-thumb-cell img { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge-type { background: rgba(233,69,96,0.1); color: var(--accent); }
+  .badge-project { background: rgba(15,52,96,0.1); color: var(--accent2); }
+
+  /* MODAL */
+  .modal { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal.open { display: flex; }
+  .modal-box { background: #fff; border-radius: var(--radius); width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 17px; font-weight: 700; color: var(--primary); }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray); transition: color .2s; }
+  .modal-close:hover { color: var(--accent); }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+  /* IMAGE UPLOAD */
+  .img-upload-area {
+    border: 2px dashed var(--border); border-radius: 10px; padding: 32px;
+    text-align: center; cursor: pointer; transition: all .2s; position: relative;
+  }
+  .img-upload-area:hover { border-color: var(--accent); background: rgba(233,69,96,0.02); }
+  .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .img-upload-area .upload-icon { font-size: 40px; margin-bottom: 8px; }
+  .img-upload-area p { font-size: 14px; color: var(--gray); }
+  .img-preview-wrap { margin-top: 16px; display: none; }
+  .img-preview-wrap img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--border); }
+  
+  /* IMAGE TABS */
+  .img-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .img-tab { padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1.5px solid var(--border); background: #fff; color: var(--gray); transition: all .2s; }
+  .img-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .img-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .img-panel { margin-bottom: 16px; }
+  
+  /* IMAGE LINK */
+  .link-tips { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .link-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .link-btn { display: inline-block; padding: 6px 14px; background: #fff; border: 1px solid var(--border); border-radius: 6px; color: var(--accent); font-size: 12px; text-decoration: none; transition: all .2s; }
+  .link-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* STATS CARD */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
+  .stat-card { background: #fff; border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px; }
+  .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .stat-icon-1 { background: rgba(233,69,96,0.1); }
+  .stat-icon-2 { background: rgba(15,52,96,0.1); }
+  .stat-icon-3 { background: rgba(245,166,35,0.1); }
+  .stat-icon-4 { background: rgba(40,167,69,0.1); }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--primary); }
+  .stat-label { font-size: 12px; color: var(--gray); margin-top: 2px; }
+
+  /* TYPES MANAGE */
+  .types-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .type-item { display: flex; align-items: center; gap: 8px; background: var(--light); border: 1.5px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+  .type-item .del-type { background: none; border: none; color: #dc3545; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
+  .add-type-row { display: flex; gap: 10px; }
+  .add-type-row input { flex: 1; }
+
+  /* PROJECTS MANAGE */
+  .projects-list { margin-bottom: 20px; }
+  .project-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border: 1.5px solid var(--border); border-radius: 8px; margin-bottom: 10px; font-size: 13px; }
+  .project-item .proj-name { flex: 1; font-weight: 600; }
+  .project-item .proj-desc { color: var(--gray); font-size: 12px; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: #fff; padding: 14px 24px; border-radius: 12px; font-size: 14px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all .3s; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: #28a745; }
+  .toast.error { background: #dc3545; }
+  .toast.warning { background: #fd7e14; }
+
+  /* EMPTY */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--gray); }
+  .empty-state-icon { font-size: 56px; margin-bottom: 12px; }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+  }
+
+  /* LOGIN SCREEN */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 2000;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #loginScreen::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(233,69,96,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .login-box {
+    background: rgba(255,255,255,0.06); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 20px;
+    padding: 48px 40px; width: 100%; max-width: 400px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4); position: relative;
+  }
+  .login-logo { text-align: center; margin-bottom: 32px; }
+  .login-logo-icon { width: 64px; height: 64px; background: var(--accent); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(233,69,96,0.4); }
+  .login-logo h1 { color: #fff; font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+  .login-logo h1 span { color: var(--accent); }
+  .login-logo p { color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 4px; }
+  .login-field { margin-bottom: 20px; }
+  .login-field label { display: block; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .login-field .input-wrap { position: relative; }
+  .login-field input[type=password], .login-field input[type=text] {
+    width: 100%; padding: 14px 48px 14px 16px; background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.15); border-radius: 10px;
+    color: #fff; font-size: 15px; font-family: inherit; transition: all .2s;
+  }
+  .login-field input::placeholder { color: rgba(255,255,255,0.3); }
+  .login-field input:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(233,69,96,0.15); }
+  .login-field input.error { border-color: #dc3545; box-shadow: 0 0 0 3px rgba(220,53,69,0.15); }
+  .eye-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.4); font-size: 16px; padding: 4px; transition: color .2s; }
+  .eye-toggle:hover { color: rgba(255,255,255,0.8); }
+  .login-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; display: none; }
+  .login-error.show { display: block; }
+  .login-btn {
+    width: 100%; padding: 15px; background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+    transition: all .2s; margin-top: 8px; letter-spacing: 1px;
+    box-shadow: 0 4px 20px rgba(233,69,96,0.35);
+  }
+  .login-btn:hover { background: #c73652; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(233,69,96,0.45); }
+  .login-btn:active { transform: translateY(0); }
+  .login-hint { text-align: center; margin-top: 20px; color: rgba(255,255,255,0.3); font-size: 12px; }
+  .shake { animation: shake .4s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-8px); }
+    40%,80% { transform: translateX(8px); }
+  }
+
+  /* PASSWORD PAGE */
+  .pwd-rules { background: var(--light); border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; font-size: 13px; color: var(--gray); line-height: 2; }
+  .pwd-rules li { list-style: none; display: flex; align-items: center; gap: 8px; }
+  .pwd-rules li::before { content: '•'; color: var(--accent); font-size: 16px; }
+  .strength-bar { height: 4px; border-radius: 2px; background: var(--border); margin-top: 8px; overflow: hidden; }
+  .strength-fill { height: 100%; border-radius: 2px; transition: all .3s; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box" id="loginBox">
+    <div class="login-logo">
+      <div class="login-logo-icon">🎨</div>
+      <h1>DESIGN<span>.</span></h1>
+      <p>作品集后台管理系统</p>
+    </div>
+    <div class="login-field">
+      <label>管理员密码</label>
+      <div class="input-wrap">
+        <input type="password" id="loginPwd" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
+        <button class="eye-toggle" onclick="toggleLoginEye(this)" tabindex="-1">👁️</button>
+      </div>
+      <div class="login-error" id="loginError">密码错误，请重试</div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">进入后台</button>
+    <div class="login-hint">首次使用默认密码：<strong style="color:rgba(255,255,255,0.6)">admin123</strong></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🎨</div>
+    <div class="sidebar-logo-text">DESIGN<span>.</span></div>
+  </div>
+  <nav class="sidebar-menu">
+    <div class="menu-section">概览</div>
+    <div class="menu-item active" data-page="dashboard" onclick="showPage('dashboard')">
+      <span class="menu-icon">📊</span> 数据概览
+    </div>
+    <div class="menu-section" style="margin-top:8px">内容管理</div>
+    <div class="menu-item" data-page="works" onclick="showPage('works')">
+      <span class="menu-icon">🖼️</span> 作品管理
+    </div>
+    <div class="menu-item" data-page="types" onclick="showPage('types')">
+      <span class="menu-icon">🏷️</span> 类型管理
+    </div>
+    <div class="menu-item" data-page="projects" onclick="showPage('projects')">
+      <span class="menu-icon">📁</span> 项目管理
+    </div>
+    <div class="menu-section" style="margin-top:8px">设置</div>
+    <div class="menu-item" data-page="profile" onclick="showPage('profile')">
+      <span class="menu-icon">👤</span> 个人信息
+    </div>
+    <div class="menu-item" data-page="password" onclick="showPage('password')">
+      <span class="menu-icon">🔑</span> 修改密码
+    </div>
+  </nav>
+  <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:12px">
+    <a href="index.html" target="_blank">🌐 查看前台主页</a>
+    <a href="#" onclick="doLogout()" style="color:rgba(233,69,96,0.7)!important">🚪 退出登录</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="topbarTitle">数据概览</div>
+    <div class="topbar-actions">
+      <span style="font-size:13px;color:#aaa;display:flex;align-items:center;gap:6px">🟢 已登录</span>
+      <button class="btn btn-primary" onclick="showPage('works');setTimeout(()=>openWorkModal(),100)">＋ 上传作品</button>
+    </div>
+  </header>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">🎨 最近上传作品</span></div>
+        <div class="panel-body" id="recentWorks"></div>
+      </div>
+    </div>
+
+    <!-- WORKS -->
+    <div id="page-works" style="display:none">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">🖼️ 作品列表</span>
+          <button class="btn btn-primary btn-sm" onclick="openWorkModal()">＋ 添加作品</button>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap"><table id="worksTable">
+            <thead><tr>
+              <th>缩略图</th><th>标题</th><th>类型</th><th>项目</th><th>日期</th><th>操作</th>
+            </tr></thead>
+            <tbody id="worksTableBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TYPES -->
+    <div id="page-types" style="display:none">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">🏷️ 作品类型管理</span></div>
+        <div class="panel-body">
+          <p style="font-size:13px;color:#888;margin-bottom:20px">管理作品分类标签，这些类型会在前台筛选栏中显示。</p>
+          <div class="types-list" id="typesList"></div>
+          <div class="add-type-row">
+            <input type="text" id="newTypeInput" placeholder="输入新类型名称，如：VI设计" onkeydown="if(event.key==='Enter')addType()">
+            <button class="btn btn-primary" onclick="addType()">添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div id="page-projects" style="display:none">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">📁 项目管理</span>
+          <button class="btn btn-primary btn-sm" onclick="openProjectModal()">＋ 新建项目</button>
+        </div>
+        <div class="panel-body">
+          <p style="font-size:13px;color:#888;margin-bottom:20px">自定义项目名称，上传作品时可选择所属项目。</p>
+          <div class="projects-list" id="projectsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="page-profile" style="display:none">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">👤 个人信息设置</span></div>
+        <div class="panel-body">
+          <div class="form-grid">
+            <!-- Avatar -->
+            <div class="form-group full">
+              <label>头像</label>
+              <div class="avatar-upload">
+                <div class="avatar-preview" id="adminAvatarPreview"><span>👤</span></div>
+                <div>
+                  <div class="upload-btn-wrap">
+                    <button class="btn btn-secondary">📷 选择头像图片</button>
+                    <input type="file" accept="image/*" onchange="handleAvatarUpload(this)">
+                  </div>
+                  <p style="font-size:12px;color:#aaa;margin-top:6px">支持 JPG、PNG、GIF，建议方形图片</p>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>姓名 / 昵称</label>
+              <input type="text" id="pName" placeholder="如：张设计">
+            </div>
+            <div class="form-group">
+              <label>职位标签</label>
+              <input type="text" id="pBadge" placeholder="如：平面设计师 / UI设计师">
+            </div>
+            <div class="form-group full">
+              <label>一句话介绍</label>
+              <input type="text" id="pSubtitle" placeholder="如：专注品牌视觉 · 10年设计经验">
+            </div>
+            <div class="form-group full">
+              <label>个人简介</label>
+              <textarea id="pBio" rows="4" placeholder="描述你的设计经历、擅长领域和设计理念..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>设计年限</label>
+              <input type="text" id="pYears" placeholder="如：5+">
+            </div>
+            <div class="form-group">
+              <label>联系电话</label>
+              <input type="tel" id="pPhone" placeholder="手机号码">
+            </div>
+            <div class="form-group">
+              <label>邮箱</label>
+              <input type="email" id="pEmail" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+              <label>微信号</label>
+              <input type="text" id="pWechat" placeholder="微信号或二维码说明">
+            </div>
+            <div class="form-group full">
+              <label>技能标签 <span class="char-hint">（输入后按 Enter 添加）</span></label>
+              <div class="tags-input-wrap" id="tagsWrap" onclick="document.getElementById('tagInput').focus()">
+                <input class="tags-input" id="tagInput" placeholder="输入技能后按 Enter" onkeydown="handleTagInput(event)">
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:28px;display:flex;gap:12px">
+            <button class="btn btn-primary" onclick="saveProfile()">💾 保存设置</button>
+            <button class="btn btn-secondary" onclick="loadProfileForm()">↺ 重置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSWORD -->
+    <div id="page-password" style="display:none">
+      <div class="panel" style="max-width:520px">
+        <div class="panel-header"><span class="panel-title">🔑 修改登录密码</span></div>
+        <div class="panel-body">
+          <ul class="pwd-rules">
+            <li>密码长度至少 6 位</li>
+            <li>建议混合字母和数字</li>
+            <li>修改后需重新登录</li>
+          </ul>
+          <div class="form-group" style="margin-bottom:18px">
+            <label>当前密码</label>
+            <div style="position:relative">
+              <input type="password" id="pwdOld" placeholder="输入当前密码" style="width:100%;padding-right:44px">
+              <button class="eye-toggle" onclick="toggleEye('pwdOld',this)" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:16px">👁️</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:18px">
+            <label>新密码</label>
+            <div style="position:relative">
+              <input type="password" id="pwdNew" placeholder="输入新密码（至少6位）" style="width:100%;padding-right:44px" oninput="checkPwdStrength(this.value)">
+              <button class="eye-toggle" onclick="toggleEye('pwdNew',this)" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:16px">👁️</button>
+            </div>
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill" style="width:0;background:#ccc"></div></div>
+            <div id="strengthLabel" style="font-size:11px;color:#aaa;margin-top:4px"></div>
+          </div>
+          <div class="form-group" style="margin-bottom:28px">
+            <label>确认新密码</label>
+            <div style="position:relative">
+              <input type="password" id="pwdConfirm" placeholder="再次输入新密码" style="width:100%;padding-right:44px">
+              <button class="eye-toggle" onclick="toggleEye('pwdConfirm',this)" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:16px">👁️</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="changePassword()">🔒 确认修改密码</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+</div><!-- end .main -->
+
+<!-- WORK MODAL -->
+<div class="modal" id="workModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="workModalTitle">添加作品</span>
+      <button class="modal-close" onclick="closeWorkModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>作品图片</label>
+          <div class="img-tabs">
+            <button type="button" class="img-tab active" onclick="switchImgTab('upload')" id="tab-upload">📁 本地上传</button>
+            <button type="button" class="img-tab" onclick="switchImgTab('link')" id="tab-link">🔗 图片链接</button>
+          </div>
+          
+          <!-- 本地上传 -->
+          <div id="imgUploadPanel" class="img-panel">
+            <div class="img-upload-area" id="imgUploadArea">
+              <input type="file" accept="image/*" onchange="handleWorkImg(this)">
+              <div class="upload-icon">🖼️</div>
+              <p>点击或拖拽上传作品图片</p>
+              <p style="font-size:12px;margin-top:4px">支持 JPG、PNG、GIF、WEBP</p>
+              <p style="font-size:11px;color:#e94560;margin-top:4px">⚠️ 建议压缩到 1MB 以下，避免存储超限</p>
+            </div>
+          </div>
+          
+          <!-- 图片链接 -->
+          <div id="imgLinkPanel" class="img-panel" style="display:none">
+            <div class="form-group" style="margin-bottom:12px">
+              <input type="text" id="imgLinkInput" placeholder="粘贴图片 URL，如 https://example.com/image.jpg" onchange="handleImgLink(this.value)">
+            </div>
+            <div class="link-tips">
+              <p style="font-size:12px;color:#666;margin-bottom:8px">💡 推荐免费图床：</p>
+              <div class="link-btns">
+                <a href="https://imgbb.com" target="_blank" class="link-btn">ImgBB</a>
+                <a href="https://sm.ms" target="_blank" class="link-btn">SM.MS</a>
+                <a href="https://postimages.org" target="_blank" class="link-btn">Postimages</a>
+              </div>
+              <p style="font-size:11px;color:#999;margin-top:8px">上传图片到图床后，复制「直接链接」粘贴到上方</p>
+            </div>
+          </div>
+          
+          <div class="img-preview-wrap" id="imgPreviewWrap">
+            <img id="imgPreview" src="" alt="预览">
+            <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="clearWorkImg()">✕ 清除图片</button>
+          </div>
+          <input type="hidden" id="workImg">
+        </div>
+        <div class="form-group">
+          <label>作品标题 *</label>
+          <input type="text" id="workTitle" placeholder="输入作品标题">
+        </div>
+        <div class="form-group">
+          <label>作品类型 *</label>
+          <select id="workType">
+            <option value="">请选择类型</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>所属项目</label>
+          <select id="workProject">
+            <option value="">不归属项目</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>完成日期</label>
+          <input type="text" id="workDate" placeholder="如：2026-04">
+        </div>
+        <div class="form-group full">
+          <label>作品描述</label>
+          <textarea id="workDesc" rows="3" placeholder="描述这件作品的设计理念、用途或背景..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeWorkModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveWork()">💾 保存作品</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal" id="projectModal">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title">新建项目</span>
+      <button class="modal-close" onclick="closeProjectModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:16px">
+        <label>项目名称 *</label>
+        <input type="text" id="projName" placeholder="如：安顺万达广场">
+      </div>
+      <div class="form-group">
+        <label>项目描述</label>
+        <textarea id="projDesc" rows="3" placeholder="简单描述这个项目..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeProjectModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveProject()">保存项目</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== DATA ==========
+const DEFAULT_PROFILE = {
+  name: '设计师', badge: '平面设计师', subtitle: '专注品牌视觉 · 创意设计',
+  bio: '热爱设计，用视觉语言传递品牌价值。专注于LOGO设计、画册排版、海报创意及地产平面设计。',
+  years: '5+', avatar: '', tags: ['LOGO设计', '画册排版', '海报创意', '视觉识别', '地产平面'],
+  phone: '', email: '', wechat: ''
+};
+const DEFAULT_TYPES = ['LOGO', '画册', '传单', '海报', '户型图', '区位图', '其他'];
+const DEFAULT_PASSWORD = 'admin123';
+
+async function getProfile() {
+  try {
+    const p = await PortfolioDB.getProfile();
+    return p || DEFAULT_PROFILE;
+  } catch (e) {
+    return DEFAULT_PROFILE;
+  }
+}
+async function getWorks() {
+  try {
+    return await PortfolioDB.getWorks();
+  } catch (e) {
+    return [];
+  }
+}
+async function getTypes() {
+  try {
+    return await PortfolioDB.getTypes();
+  } catch (e) {
+    return DEFAULT_TYPES;
+  }
+}
+async function getProjects() {
+  try {
+    return await PortfolioDB.getProjects();
+  } catch (e) {
+    return [];
+  }
+}
+async function saveWorks(w) {
+  // 清空后重新添加（Firestore 不支持全量更新）
+  // 这个函数会被单独的操作替换
+}
+async function saveTypes(t) {
+  try {
+    await PortfolioDB.saveTypes(t);
+  } catch (e) {
+    showToast('保存类型失败', 'error');
+  }
+}
+async function saveProjects(p) {
+  try {
+    await PortfolioDB.saveProjects(p);
+  } catch (e) {
+    showToast('保存项目失败', 'error');
+  }
+}
+async function getPassword() {
+  try {
+    const p = await PortfolioDB.getPassword();
+    return p || DEFAULT_PASSWORD;
+  } catch (e) {
+    return DEFAULT_PASSWORD;
+  }
+}
+async function savePassword(p) {
+  try {
+    await PortfolioDB.savePassword(p);
+  } catch (e) {
+    showToast('保存密码失败', 'error');
+  }
+}
+
+// ========== AUTH ==========
+const SESSION_KEY = 'portfolio_admin_session';
+
+function isLoggedIn() {
+  const s = sessionStorage.getItem(SESSION_KEY);
+  return s === 'true';
+}
+
+async function doLogin() {
+  const pwd = document.getElementById('loginPwd').value;
+  const errEl = document.getElementById('loginError');
+  const storedPwd = await getPassword();
+  if (pwd === storedPwd) {
+    sessionStorage.setItem(SESSION_KEY, 'true');
+    document.getElementById('loginScreen').style.display = 'none';
+    errEl.classList.remove('show');
+  } else {
+    errEl.classList.add('show');
+    const box = document.getElementById('loginBox');
+    box.classList.remove('shake');
+    void box.offsetWidth; // reflow
+    box.classList.add('shake');
+    document.getElementById('loginPwd').value = '';
+    document.getElementById('loginPwd').classList.add('error');
+    setTimeout(() => document.getElementById('loginPwd').classList.remove('error'), 1000);
+  }
+}
+
+function doLogout() {
+  if (!confirm('确定退出登录吗？')) return;
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('loginPwd').value = '';
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function toggleLoginEye(btn) {
+  const input = document.getElementById('loginPwd');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁️'; }
+}
+
+function toggleEye(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁️'; }
+}
+
+// ========== PASSWORD CHANGE ==========
+function checkPwdStrength(val) {
+  const fill = document.getElementById('strengthFill');
+  const label = document.getElementById('strengthLabel');
+  if (!val) { fill.style.width = '0'; label.textContent = ''; return; }
+  let score = 0;
+  if (val.length >= 6) score++;
+  if (val.length >= 10) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const map = [
+    { w: '20%', c: '#dc3545', t: '强度：弱' },
+    { w: '40%', c: '#fd7e14', t: '强度：较弱' },
+    { w: '60%', c: '#ffc107', t: '强度：中等' },
+    { w: '80%', c: '#20c997', t: '强度：较强' },
+    { w: '100%', c: '#28a745', t: '强度：强' },
+  ];
+  const m = map[Math.min(score - 1, 4)] || map[0];
+  fill.style.width = m.w; fill.style.background = m.c;
+  label.textContent = m.t; label.style.color = m.c;
+}
+
+async function changePassword() {
+  const oldPwd = document.getElementById('pwdOld').value;
+  const newPwd = document.getElementById('pwdNew').value;
+  const confirmPwd = document.getElementById('pwdConfirm').value;
+  const storedPwd = await getPassword();
+  if (oldPwd !== storedPwd) { showToast('当前密码不正确', 'error'); return; }
+  if (newPwd.length < 6) { showToast('新密码至少需要 6 位', 'error'); return; }
+  if (newPwd !== confirmPwd) { showToast('两次输入的密码不一致', 'error'); return; }
+  try {
+    await PortfolioDB.savePassword(newPwd);
+    document.getElementById('pwdOld').value = '';
+    document.getElementById('pwdNew').value = '';
+    document.getElementById('pwdConfirm').value = '';
+    document.getElementById('strengthFill').style.width = '0';
+    document.getElementById('strengthLabel').textContent = '';
+    showToast('密码已修改，下次登录使用新密码 ✓', 'success');
+    // 自动退出重新登录
+    setTimeout(() => {
+      sessionStorage.removeItem(SESSION_KEY);
+      document.getElementById('loginPwd').value = '';
+      document.getElementById('loginError').classList.remove('show');
+      document.getElementById('loginScreen').style.display = 'flex';
+    }, 2000);
+  } catch (e) {
+    showToast('修改失败', 'error');
+  }
+}
+
+// ========== PAGE ROUTING ==========
+const pages = ['dashboard', 'works', 'types', 'projects', 'profile', 'password'];
+const titles = { dashboard: '数据概览', works: '作品管理', types: '类型管理', projects: '项目管理', profile: '个人信息', password: '修改密码' };
+
+async function showPage(name) {
+  pages.forEach(p => {
+    document.getElementById('page-' + p).style.display = p === name ? 'block' : 'none';
+    document.querySelector('[data-page="' + p + '"]').classList.toggle('active', p === name);
+  });
+  document.getElementById('topbarTitle').textContent = titles[name];
+  if (name === 'dashboard') await renderDashboard();
+  if (name === 'works') await renderWorksTable();
+  if (name === 'types') await renderTypes();
+  if (name === 'projects') await renderProjects();
+  if (name === 'profile') await loadProfileForm();
+}
+
+// ========== DASHBOARD ==========
+async function renderDashboard() {
+  const works = await getWorks();
+  const types = await getTypes();
+  const projects = await getProjects();
+  const typesUsed = [...new Set(works.map(w => w.type).filter(Boolean))];
+  const projsUsed = [...new Set(works.map(w => w.project).filter(Boolean))];
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-1">🖼️</div>
+      <div><div class="stat-num">${works.length}</div><div class="stat-label">作品总数</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-2">📁</div>
+      <div><div class="stat-num">${projects.length}</div><div class="stat-label">项目数量</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-3">🏷️</div>
+      <div><div class="stat-num">${types.length}</div><div class="stat-label">作品类型</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-4">✅</div>
+      <div><div class="stat-num">${typesUsed.length}</div><div class="stat-label">已用类型</div></div>
+    </div>
+  `;
+
+  const recent = works.slice(-6).reverse();
+  if (recent.length === 0) {
+    document.getElementById('recentWorks').innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><p>暂无作品，点击右上角上传第一件作品</p></div>`;
+  } else {
+    document.getElementById('recentWorks').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px">
+        ${recent.map(w => `
+          <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer" onclick="showPage('works')">
+            <div style="height:100px;background:#f5f5f7;display:flex;align-items:center;justify-content:center;overflow:hidden">
+              ${w.image ? `<img src="${w.image}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:32px">🖼️</span>`}
+            </div>
+            <div style="padding:8px 10px">
+              <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${w.title}</div>
+              <div style="font-size:11px;color:#aaa;margin-top:2px">${w.type || '未分类'}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+}
+
+// ========== WORKS TABLE ==========
+async function renderWorksTable() {
+  const works = await getWorks();
+  const tbody = document.getElementById('worksTableBody');
+  if (works.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#aaa">暂无作品，点击"添加作品"开始上传</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = works.map((w, i) => `
+    <tr>
+      <td>
+        <div class="work-thumb-cell">
+          ${w.image ? `<img src="${w.image}" alt="${w.title}">` : '🖼️'}
+        </div>
+      </td>
+      <td><strong>${w.title}</strong></td>
+      <td>${w.type ? `<span class="badge badge-type">${w.type}</span>` : '<span style="color:#ccc">-</span>'}</td>
+      <td>${w.project ? `<span class="badge badge-project">${w.project}</span>` : '<span style="color:#ccc">-</span>'}</td>
+      <td style="color:#aaa">${w.date || '-'}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="editWork(${i})" style="margin-right:6px">编辑</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteWork(${i})">删除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ========== WORK MODAL ==========
+let editingWorkIdx = -1;
+let editingWorkId = null; // Firebase document ID
+
+async function openWorkModal(idx = -1) {
+  editingWorkIdx = idx;
+  editingWorkId = null;
+  document.getElementById('workModalTitle').textContent = idx >= 0 ? '编辑作品' : '添加作品';
+  // 重置图片标签页
+  switchImgTab('upload');
+  document.getElementById('imgLinkInput').value = '';
+  
+  // Populate type select
+  const types = await getTypes();
+  const typeSelect = document.getElementById('workType');
+  typeSelect.innerHTML = '<option value="">请选择类型</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+  
+  // Populate project select
+  const projects = await getProjects();
+  const projSelect = document.getElementById('workProject');
+  projSelect.innerHTML = '<option value="">不归属项目</option>' + projects.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+
+  if (idx >= 0) {
+    const works = await getWorks();
+    const w = works[idx];
+    editingWorkId = w.id; // 保存 Firebase document ID
+    document.getElementById('workTitle').value = w.title || '';
+    document.getElementById('workType').value = w.type || '';
+    document.getElementById('workProject').value = w.project || '';
+    document.getElementById('workDate').value = w.date || '';
+    document.getElementById('workDesc').value = w.desc || '';
+    document.getElementById('workImg').value = w.image || '';
+    if (w.image) {
+      document.getElementById('imgPreview').src = w.image;
+      document.getElementById('imgPreviewWrap').style.display = 'block';
+      document.getElementById('imgUploadArea').style.display = 'none';
+    } else {
+      clearWorkImg();
+    }
+  } else {
+    document.getElementById('workTitle').value = '';
+    document.getElementById('workType').value = '';
+    document.getElementById('workProject').value = '';
+    document.getElementById('workDate').value = '';
+    document.getElementById('workDesc').value = '';
+    clearWorkImg();
+  }
+  
+  document.getElementById('workModal').classList.add('open');
+}
+
+function closeWorkModal() {
+  document.getElementById('workModal').classList.remove('open');
+}
+
+function switchImgTab(tab) {
+  document.querySelectorAll('.img-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('imgUploadPanel').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('imgLinkPanel').style.display = tab === 'link' ? 'block' : 'none';
+}
+
+function handleWorkImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  // 检查文件大小，超过 2MB 提示
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('图片较大 (' + (file.size/1024/1024).toFixed(1) + 'MB)，建议压缩后再上传', 'warning');
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('workImg').value = e.target.result;
+    document.getElementById('imgPreview').src = e.target.result;
+    document.getElementById('imgPreviewWrap').style.display = 'block';
+    document.getElementById('imgUploadArea').style.display = 'none';
+    showToast('图片已加载 ✓', 'success');
+  };
+  reader.onerror = () => showToast('图片读取失败', 'error');
+  reader.readAsDataURL(file);
+}
+
+function handleImgLink(url) {
+  if (!url.trim()) return;
+  // 简单验证 URL
+  if (!url.match(/^https?:\/\/.+/i)) {
+    showToast('请输入有效的图片链接（以 http:// 或 https:// 开头）', 'error');
+    return;
+  }
+  document.getElementById('workImg').value = url.trim();
+  document.getElementById('imgPreview').src = url.trim();
+  document.getElementById('imgPreviewWrap').style.display = 'block';
+  document.getElementById('imgUploadPanel').style.display = 'none';
+  document.getElementById('imgLinkPanel').style.display = 'none';
+  showToast('图片链接已添加 ✓', 'success');
+}
+
+function clearWorkImg() {
+  document.getElementById('workImg').value = '';
+  document.getElementById('imgPreviewWrap').style.display = 'none';
+  document.getElementById('imgUploadArea').style.display = 'block';
+  document.getElementById('imgLinkInput').value = '';
+  // 重置标签页
+  switchImgTab('upload');
+}
+
+async function saveWork() {
+  const title = document.getElementById('workTitle').value.trim();
+  if (!title) { showToast('请填写作品标题', 'error'); return; }
+  
+  const work = {
+    title,
+    type: document.getElementById('workType').value,
+    project: document.getElementById('workProject').value,
+    date: document.getElementById('workDate').value.trim(),
+    desc: document.getElementById('workDesc').value.trim(),
+    image: document.getElementById('workImg').value
+  };
+
+  try {
+    if (editingWorkId) {
+      // 更新已有作品
+      await PortfolioDB.updateWork(editingWorkId, work);
+      showToast('作品已更新 ✓', 'success');
+    } else {
+      // 添加新作品
+      await PortfolioDB.addWork(work);
+      showToast('作品已添加 ✓', 'success');
+    }
+    closeWorkModal();
+    await renderWorksTable();
+    await renderDashboard();
+  } catch (e) {
+    showToast('保存失败：' + e.message, 'error');
+  }
+}
+
+function editWork(i) {
+  openWorkModal(i);
+}
+
+async function deleteWork(i) {
+  if (!confirm('确定删除这件作品吗？')) return;
+  try {
+    const works = await getWorks();
+    const work = works[i];
+    if (work && work.id) {
+      await PortfolioDB.deleteWork(work.id);
+    }
+    await renderWorksTable();
+    await renderDashboard();
+    showToast('已删除', 'success');
+  } catch (e) {
+    showToast('删除失败', 'error');
+  }
+}
+
+// ========== TYPES ==========
+async function renderTypes() {
+  const types = await getTypes();
+  document.getElementById('typesList').innerHTML = types.map((t, i) => `
+    <div class="type-item">
+      <span>${t}</span>
+      <button class="del-type" onclick="deleteType(${i})" title="删除">✕</button>
+    </div>
+  `).join('');
+}
+
+async function addType() {
+  const input = document.getElementById('newTypeInput');
+  const name = input.value.trim();
+  if (!name) return;
+  const types = await getTypes();
+  if (types.includes(name)) { showToast('类型已存在', 'error'); return; }
+  types.push(name);
+  await saveTypes(types);
+  input.value = '';
+  await renderTypes();
+  showToast('已添加类型：' + name, 'success');
+}
+
+async function deleteType(i) {
+  const types = await getTypes();
+  if (!confirm(`确定删除类型"${types[i]}"吗？`)) return;
+  types.splice(i, 1);
+  await saveTypes(types);
+  await renderTypes();
+  showToast('已删除', 'success');
+}
+
+// ========== PROJECTS ==========
+async function renderProjects() {
+  const projects = await getProjects();
+  const works = await getWorks();
+  const el = document.getElementById('projectsList');
+  if (projects.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📁</div><p>暂无项目，点击"新建项目"创建</p></div>`;
+    return;
+  }
+  el.innerHTML = projects.map((p, i) => `
+    <div class="project-item">
+      <span class="proj-name">📁 ${p.name}</span>
+      <span class="proj-desc">${p.desc || '暂无描述'}</span>
+      <span style="font-size:12px;color:#aaa;margin-left:auto">${works.filter(w => w.project === p.name).length} 件作品</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteProject(${i})" style="margin-left:12px">删除</button>
+    </div>
+  `).join('');
+}
+
+function openProjectModal() {
+  document.getElementById('projName').value = '';
+  document.getElementById('projDesc').value = '';
+  document.getElementById('projectModal').classList.add('open');
+}
+function closeProjectModal() {
+  document.getElementById('projectModal').classList.remove('open');
+}
+async function saveProject() {
+  const name = document.getElementById('projName').value.trim();
+  if (!name) { showToast('请填写项目名称', 'error'); return; }
+  const projects = await getProjects();
+  if (projects.find(p => p.name === name)) { showToast('项目已存在', 'error'); return; }
+  const project = { name, desc: document.getElementById('projDesc').value.trim() };
+  try {
+    await PortfolioDB.addProject(project);
+    closeProjectModal();
+    await renderProjects();
+    showToast('项目已创建：' + name, 'success');
+  } catch (e) {
+    showToast('创建失败', 'error');
+  }
+}
+async function deleteProject(i) {
+  const projects = await getProjects();
+  if (!confirm(`确定删除项目"${projects[i].name}"吗？`)) return;
+  try {
+    if (projects[i].id) {
+      await PortfolioDB.deleteProject(projects[i].id);
+    }
+    await renderProjects();
+    showToast('已删除', 'success');
+  } catch (e) {
+    showToast('删除失败', 'error');
+  }
+}
+
+// ========== PROFILE ==========
+let profileTags = [];
+
+async function loadProfileForm() {
+  const p = await getProfile();
+  document.getElementById('pName').value = p.name || '';
+  document.getElementById('pBadge').value = p.badge || '';
+  document.getElementById('pSubtitle').value = p.subtitle || '';
+  document.getElementById('pBio').value = p.bio || '';
+  document.getElementById('pYears').value = p.years || '';
+  document.getElementById('pPhone').value = p.phone || '';
+  document.getElementById('pEmail').value = p.email || '';
+  document.getElementById('pWechat').value = p.wechat || '';
+  
+  profileTags = [...(p.tags || [])];
+  renderTagChips();
+
+  const av = document.getElementById('adminAvatarPreview');
+  if (p.avatar) {
+    av.innerHTML = `<img src="${p.avatar}" alt="头像">`;
+  } else {
+    av.innerHTML = `<span>👤</span>`;
+  }
+}
+
+function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const p = getProfile();
+    p.avatar = e.target.result;
+    localStorage.setItem('portfolio_profile', JSON.stringify(p));
+    document.getElementById('adminAvatarPreview').innerHTML = `<img src="${e.target.result}" alt="头像">`;
+    showToast('头像已更新 ✓', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderTagChips() {
+  const wrap = document.getElementById('tagsWrap');
+  const input = document.getElementById('tagInput');
+  wrap.innerHTML = '';
+  profileTags.forEach((t, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${t} <button onclick="removeTag(${i})">✕</button>`;
+    wrap.appendChild(chip);
+  });
+  wrap.appendChild(input);
+  input.focus();
+}
+
+function handleTagInput(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = e.target.value.trim();
+    if (val && !profileTags.includes(val)) {
+      profileTags.push(val);
+      renderTagChips();
+    }
+    e.target.value = '';
+  }
+}
+
+function removeTag(i) {
+  profileTags.splice(i, 1);
+  renderTagChips();
+}
+
+async function saveProfile() {
+  try {
+    const p = await getProfile();
+    if (!p || typeof p !== 'object') {
+      throw new Error('获取个人资料失败');
+    }
+    p.name = document.getElementById('pName').value.trim() || '设计师';
+    p.badge = document.getElementById('pBadge').value.trim();
+    p.subtitle = document.getElementById('pSubtitle').value.trim();
+    p.bio = document.getElementById('pBio').value.trim();
+    p.years = document.getElementById('pYears').value.trim();
+    p.phone = document.getElementById('pPhone').value.trim();
+    p.email = document.getElementById('pEmail').value.trim();
+    p.wechat = document.getElementById('pWechat').value.trim();
+    p.tags = [...profileTags];
+    
+    console.log('正在保存个人资料:', p);
+    await PortfolioDB.saveProfile(p);
+    showToast('个人信息已保存 ✓', 'success');
+  } catch (e) {
+    console.error('保存个人资料失败:', e);
+    showToast('保存失败：' + (e.message || '未知错误'), 'error');
+  }
+}
+
+// ========== TOAST ==========
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ========== INIT ==========
+if (isLoggedIn()) {
+  document.getElementById('loginScreen').style.display = 'none';
+}
+showPage('dashboard');
+</script>
+</body>
+</html>

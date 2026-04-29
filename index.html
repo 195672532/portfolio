@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计师作品集</title>
+<!-- 腾讯云 CloudBase 数据存储（跨设备同步） -->
+<script src="cloudbase-config.js"></script>
+<style>
+  :root {
+    --primary: #1a1a2e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --gold: #f5a623;
+    --light: #f8f9fa;
+    --gray: #6c757d;
+    --card-bg: #ffffff;
+    --border: #e9ecef;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-hover: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f5f7; color: #333; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(26,26,46,0.95); backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 64px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .nav-logo { color: #fff; font-size: 20px; font-weight: 700; letter-spacing: 2px; }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; transition: color .3s; cursor: pointer; }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-admin { background: var(--accent); color: #fff !important; padding: 8px 20px; border-radius: 20px; font-weight: 600; transition: background .3s !important; }
+  .nav-admin:hover { background: #c73652 !important; color: #fff !important; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh; padding-top: 64px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  #hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(233,69,96,0.15) 0%, transparent 60%);
+  }
+  .hero-content { display: flex; align-items: center; gap: 80px; max-width: 1100px; padding: 60px 40px; position: relative; z-index: 1; }
+  .hero-avatar {
+    width: 220px; height: 220px; border-radius: 50%;
+    border: 4px solid var(--accent); flex-shrink: 0;
+    background: linear-gradient(135deg, #e94560, #0f3460);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px; color: #fff; overflow: hidden;
+    box-shadow: 0 0 60px rgba(233,69,96,0.4);
+    position: relative;
+  }
+  .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-avatar .avatar-placeholder { font-size: 80px; }
+  .hero-text { flex: 1; }
+  .hero-badge { display: inline-block; background: rgba(233,69,96,0.2); color: var(--accent); border: 1px solid rgba(233,69,96,0.4); padding: 6px 16px; border-radius: 20px; font-size: 13px; margin-bottom: 16px; letter-spacing: 1px; }
+  .hero-name { font-size: 52px; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 12px; }
+  .hero-name span { color: var(--accent); }
+  .hero-title { font-size: 20px; color: rgba(255,255,255,0.6); margin-bottom: 20px; letter-spacing: 2px; }
+  .hero-bio { font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.8; margin-bottom: 32px; max-width: 500px; }
+  .hero-stats { display: flex; gap: 40px; margin-bottom: 36px; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 32px; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; letter-spacing: 1px; }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+  .tag { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); padding: 6px 16px; border-radius: 20px; font-size: 13px; border: 1px solid rgba(255,255,255,0.15); }
+  .hero-contact { display: flex; gap: 16px; margin-top: 24px; }
+  .contact-item { color: rgba(255,255,255,0.6); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .contact-item .icon { font-size: 16px; }
+
+  /* SECTION COMMON */
+  section { padding: 80px 40px; }
+  .section-header { text-align: center; margin-bottom: 60px; }
+  .section-tag { display: inline-block; background: rgba(233,69,96,0.1); color: var(--accent); border: 1px solid rgba(233,69,96,0.3); padding: 5px 16px; border-radius: 20px; font-size: 12px; letter-spacing: 2px; margin-bottom: 16px; }
+  .section-title { font-size: 36px; font-weight: 800; color: var(--primary); margin-bottom: 12px; }
+  .section-subtitle { font-size: 15px; color: var(--gray); }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* FILTER BAR */
+  .filter-section { background: #fff; border-radius: 20px; padding: 30px; margin-bottom: 40px; box-shadow: var(--shadow); }
+  .filter-group-label { font-size: 13px; font-weight: 700; color: var(--primary); letter-spacing: 1px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .filter-group-label::before { content: ''; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; display: inline-block; }
+  .filter-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+  .filter-tab {
+    padding: 8px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; cursor: pointer;
+    border: 1.5px solid var(--border); background: #fff; color: var(--gray); transition: all .25s;
+  }
+  .filter-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 4px 12px rgba(233,69,96,0.3); }
+  .filter-divider { border: none; border-top: 1px dashed var(--border); margin: 20px 0; }
+
+  /* WORKS GRID */
+  #works { background: #f5f5f7; }
+  .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; }
+  .work-card {
+    background: #fff; border-radius: 16px; overflow: hidden;
+    box-shadow: var(--shadow); cursor: pointer; transition: all .3s;
+    position: relative;
+  }
+  .work-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+  .work-thumb {
+    width: 100%; height: 220px; object-fit: cover;
+    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; position: relative; overflow: hidden;
+  }
+  .work-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .work-thumb-placeholder { font-size: 48px; color: #ccc; }
+  .work-overlay {
+    position: absolute; inset: 0; background: rgba(26,26,46,0.85);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .3s; gap: 16px;
+  }
+  .work-card:hover .work-overlay { opacity: 1; }
+  .overlay-btn { width: 44px; height: 44px; border-radius: 50%; background: #fff; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: transform .2s; }
+  .overlay-btn:hover { transform: scale(1.1); }
+  .work-badges { position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .type-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: var(--accent); color: #fff; }
+  .project-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: var(--accent2); color: #fff; }
+  .work-info { padding: 20px; }
+  .work-title { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+  .work-desc { font-size: 13px; color: var(--gray); line-height: 1.6; margin-bottom: 12px; }
+  .work-meta { display: flex; align-items: center; justify-content: space-between; }
+  .work-project { font-size: 12px; color: var(--accent); font-weight: 600; }
+  .work-date { font-size: 12px; color: #bbb; }
+  .no-works { text-align: center; padding: 80px 20px; color: var(--gray); }
+  .no-works-icon { font-size: 60px; margin-bottom: 16px; }
+
+  /* LIGHTBOX */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox-inner { max-width: 90vw; max-height: 90vh; position: relative; }
+  .lightbox-inner img { max-width: 100%; max-height: 80vh; border-radius: 8px; display: block; }
+  .lightbox-info { background: #1a1a2e; padding: 20px; border-radius: 0 0 8px 8px; }
+  .lightbox-title { color: #fff; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .lightbox-desc { color: rgba(255,255,255,0.6); font-size: 13px; }
+  .lightbox-close { position: absolute; top: -16px; right: -16px; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  .lightbox-placeholder { width: 600px; height: 400px; background: linear-gradient(135deg, #1a1a2e, #0f3460); display: flex; align-items: center; justify-content: center; font-size: 80px; border-radius: 8px; }
+
+  /* FOOTER */
+  footer { background: var(--primary); color: rgba(255,255,255,0.6); text-align: center; padding: 40px; font-size: 13px; }
+  footer strong { color: var(--accent); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: #fff; padding: 14px 24px; border-radius: 12px; font-size: 14px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all .3s; box-shadow: var(--shadow-hover); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .hero-content { flex-direction: column; gap: 40px; padding: 40px 20px; text-align: center; }
+    .hero-name { font-size: 36px; }
+    .hero-stats { justify-content: center; }
+    .hero-tags { justify-content: center; }
+    .hero-contact { justify-content: center; }
+    section { padding: 60px 20px; }
+    .works-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">DESIGN<span>.</span></div>
+  <div class="nav-links">
+    <a onclick="scrollToSection('#hero')">首页</a>
+    <a onclick="scrollToSection('#works')">作品集</a>
+    <a onclick="window.location.href='admin.html'" class="nav-admin">后台管理</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-content">
+    <div class="hero-avatar" id="heroAvatar">
+      <span class="avatar-placeholder">👤</span>
+    </div>
+    <div class="hero-text">
+      <div class="hero-badge" id="heroBadge">平面设计师</div>
+      <div class="hero-name">你好，我是<br><span id="heroName">设计师</span></div>
+      <div class="hero-title" id="heroSubtitle">专注品牌视觉 · 创意设计</div>
+      <div class="hero-bio" id="heroBio">热爱设计，用视觉语言传递品牌价值。专注于LOGO设计、画册排版、海报创意及地产平面设计。</div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num" id="statWorks">0</div><div class="stat-label">作品数量</div></div>
+        <div class="stat"><div class="stat-num" id="statYears">-</div><div class="stat-label">设计年限</div></div>
+        <div class="stat"><div class="stat-num" id="statProjects">0</div><div class="stat-label">项目数量</div></div>
+      </div>
+      <div class="hero-tags" id="heroTags"></div>
+      <div class="hero-contact" id="heroContact"></div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKS -->
+<section id="works">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">PORTFOLIO</div>
+      <h2 class="section-title">作品集</h2>
+      <p class="section-subtitle">按类型或项目浏览我的设计作品</p>
+    </div>
+
+    <div class="filter-section">
+      <!-- 按类型 -->
+      <div class="filter-group-label">按作品类型</div>
+      <div class="filter-tabs" id="typeFilter">
+        <div class="filter-tab active" data-type="all">全部</div>
+      </div>
+      <hr class="filter-divider">
+      <!-- 按项目 -->
+      <div class="filter-group-label">按项目名称</div>
+      <div class="filter-tabs" id="projectFilter">
+        <div class="filter-tab active" data-project="all">全部</div>
+      </div>
+    </div>
+
+    <div class="works-grid" id="worksGrid"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="siteFooter">
+  <p>© 2026 <strong id="footerName">设计师作品集</strong> · 用设计创造价值</p>
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <div class="lightbox-inner" id="lightboxInner">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <div id="lightboxContent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== DATA ==========
+const DEFAULT_PROFILE = {
+  name: '设计师',
+  badge: '平面设计师',
+  subtitle: '专注品牌视觉 · 创意设计',
+  bio: '热爱设计，用视觉语言传递品牌价值。专注于LOGO设计、画册排版、海报创意及地产平面设计。',
+  years: '5+',
+  avatar: '',
+  tags: ['LOGO设计', '画册排版', '海报创意', '视觉识别', '地产平面'],
+  phone: '',
+  email: '',
+  wechat: ''
+};
+
+const DEFAULT_TYPES = ['LOGO', '画册', '传单', '海报', '户型图', '区位图', '其他'];
+
+async function getProfile() {
+  try {
+    const p = await PortfolioDB.getProfile();
+    return p || DEFAULT_PROFILE;
+  } catch (e) {
+    return DEFAULT_PROFILE;
+  }
+}
+
+async function getWorks() {
+  try {
+    return await PortfolioDB.getWorks();
+  } catch (e) {
+    return [];
+  }
+}
+
+async function getTypes() {
+  try {
+    return await PortfolioDB.getTypes();
+  } catch (e) {
+    return DEFAULT_TYPES;
+  }
+}
+
+async function getProjects() {
+  try {
+    return await PortfolioDB.getProjects();
+  } catch (e) {
+    return [];
+  }
+}
+
+// ========== RENDER PROFILE ==========
+async function renderProfile() {
+  const p = await getProfile();
+  document.title = p.name + ' - 设计师作品集';
+  
+  // Avatar
+  const av = document.getElementById('heroAvatar');
+  if (p.avatar) {
+    av.innerHTML = `<img src="${p.avatar}" alt="${p.name}">`;
+  } else {
+    av.innerHTML = `<span class="avatar-placeholder">👤</span>`;
+  }
+  
+  document.getElementById('heroBadge').textContent = p.badge || '平面设计师';
+  document.getElementById('heroName').textContent = p.name || '设计师';
+  document.getElementById('heroSubtitle').textContent = p.subtitle || '';
+  document.getElementById('heroBio').textContent = p.bio || '';
+  document.getElementById('statYears').textContent = p.years || '-';
+  document.getElementById('footerName').textContent = p.name + ' 作品集';
+
+  // Tags
+  const tagsEl = document.getElementById('heroTags');
+  tagsEl.innerHTML = (p.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+
+  // Contact
+  const contactEl = document.getElementById('heroContact');
+  let contacts = [];
+  if (p.phone) contacts.push(`<span class="contact-item"><span class="icon">📱</span>${p.phone}</span>`);
+  if (p.email) contacts.push(`<span class="contact-item"><span class="icon">📧</span>${p.email}</span>`);
+  if (p.wechat) contacts.push(`<span class="contact-item"><span class="icon">💬</span>${p.wechat}</span>`);
+  contactEl.innerHTML = contacts.join('');
+}
+
+// ========== RENDER FILTERS ==========
+let activeType = 'all';
+let activeProject = 'all';
+let cachedWorks = [];
+
+async function renderFilters() {
+  cachedWorks = await getWorks();
+  const types = ['all', ...(await getTypes())];
+  const projectsFromWorks = [...new Set(cachedWorks.map(w => w.project).filter(Boolean))];
+
+  // Type filter
+  const typeEl = document.getElementById('typeFilter');
+  typeEl.innerHTML = types.map(t => `
+    <div class="filter-tab ${activeType === t ? 'active' : ''}" 
+         data-type="${t}" onclick="setTypeFilter('${t}')">
+      ${t === 'all' ? '全部' : t}
+      <span style="margin-left:4px;opacity:.6;font-size:11px">${t === 'all' ? cachedWorks.length : cachedWorks.filter(w => w.type === t).length}</span>
+    </div>
+  `).join('');
+
+  // Project filter
+  const projects = ['all', ...projectsFromWorks];
+  const projEl = document.getElementById('projectFilter');
+  projEl.innerHTML = projects.map(p => `
+    <div class="filter-tab ${activeProject === p ? 'active' : ''}" 
+         data-project="${p}" onclick="setProjectFilter('${p}')">
+      ${p === 'all' ? '全部' : p}
+      <span style="margin-left:4px;opacity:.6;font-size:11px">${p === 'all' ? cachedWorks.length : cachedWorks.filter(w => w.project === p).length}</span>
+    </div>
+  `).join('');
+}
+
+async function setTypeFilter(t) {
+  activeType = t;
+  activeProject = 'all';
+  await renderFilters();
+  await renderWorks();
+}
+async function setProjectFilter(p) {
+  activeProject = p;
+  activeType = 'all';
+  await renderFilters();
+  await renderWorks();
+}
+
+// ========== RENDER WORKS ==========
+async function renderWorks() {
+  if (cachedWorks.length === 0) cachedWorks = await getWorks();
+  
+  let works = [...cachedWorks];
+  
+  if (activeType !== 'all') works = works.filter(w => w.type === activeType);
+  if (activeProject !== 'all') works = works.filter(w => w.project === activeProject);
+
+  // Update stats
+  document.getElementById('statWorks').textContent = cachedWorks.length;
+  const projs = [...new Set(cachedWorks.map(w => w.project).filter(Boolean))];
+  document.getElementById('statProjects').textContent = projs.length;
+
+  const grid = document.getElementById('worksGrid');
+  if (works.length === 0) {
+    grid.innerHTML = `<div class="no-works" style="grid-column:1/-1">
+      <div class="no-works-icon">🎨</div>
+      <p style="font-size:18px;font-weight:600;margin-bottom:8px">暂无作品</p>
+      <p style="font-size:14px">请前往<a href="admin.html" style="color:var(--accent)">后台管理</a>上传作品</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = works.map((w, i) => `
+    <div class="work-card" onclick="openLightboxById('${w.id}')">
+      <div class="work-thumb">
+        ${w.image ? `<img src="${w.image}" alt="${w.title}">` : `<div class="work-thumb-placeholder">🖼️</div>`}
+        <div class="work-overlay">
+          <button class="overlay-btn" title="查看大图">🔍</button>
+        </div>
+        <div class="work-badges">
+          ${w.type ? `<span class="type-badge">${w.type}</span>` : ''}
+          ${w.project ? `<span class="project-badge">${w.project}</span>` : ''}
+        </div>
+      </div>
+      <div class="work-info">
+        <div class="work-title">${w.title}</div>
+        <div class="work-desc">${w.desc || '暂无描述'}</div>
+        <div class="work-meta">
+          <span class="work-project">${w.project || ''}</span>
+          <span class="work-date">${w.date || ''}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========== LIGHTBOX ==========
+function openLightboxById(id) {
+  const w = cachedWorks.find(work => work.id == id);
+  if (!w) return;
+  openLightboxWork(w);
+}
+
+function openLightbox(idx) {
+  const w = cachedWorks[idx];
+  if (!w) return;
+  openLightboxWork(w);
+}
+
+function openLightboxWork(w) {
+  const lb = document.getElementById('lightbox');
+  const content = document.getElementById('lightboxContent');
+  
+  if (w.image) {
+    content.innerHTML = `
+      <img src="${w.image}" alt="${w.title}" style="max-width:85vw;max-height:70vh;border-radius:8px 8px 0 0;display:block;">
+      <div class="lightbox-info">
+        <div class="lightbox-title">${w.title}</div>
+        <div class="lightbox-desc">${w.type ? '类型：' + w.type + '  ' : ''}${w.project ? '项目：' + w.project : ''}</div>
+        ${w.desc ? `<div class="lightbox-desc" style="margin-top:6px">${w.desc}</div>` : ''}
+      </div>`;
+  } else {
+    content.innerHTML = `
+      <div class="lightbox-placeholder">🖼️</div>
+      <div class="lightbox-info">
+        <div class="lightbox-title">${w.title}</div>
+        <div class="lightbox-desc">${w.desc || ''}</div>
+      </div>`;
+  }
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(e) {
+  if (!e || e.target === document.getElementById('lightbox')) {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+// ========== UTILS ==========
+function scrollToSection(id) {
+  const el = document.querySelector(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ========== INIT ==========
+(async function init() {
+  await renderProfile();
+  await renderFilters();
+  await renderWorks();
+})();
+
+// Listen for storage changes (from admin page)
+window.addEventListener('storage', () => {
+  renderProfile();
+  renderFilters();
+  renderWorks();
+});
+</script>
+</body>
+</html>
